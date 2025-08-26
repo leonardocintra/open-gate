@@ -11,7 +11,7 @@ export default function Home() {
     setMessage("Abrindo portão...");
     const res = await fetch(`/api/open-gate`, { method: "POST" });
     if (!res.ok) {
-      setMessage("Acesso negado");
+      setMessage(`Acesso negado! Erro: ${res.statusText} - ${res.status} - ${await res.text()}`);
     } else {
       setMessage("Enviado comando para abrir o portão!");
     }
