@@ -1,6 +1,7 @@
 "use client";
 
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function Home() {
@@ -8,12 +9,16 @@ export default function Home() {
   const [message, setMessage] = useState("");
 
   const openGate = async () => {
-    setMessage("Abrindo portão...");
+    setMessage("Abrindo / fechando o portão...");
     const res = await fetch(`/api/open-gate`, { method: "POST" });
     if (!res.ok) {
-      setMessage(`Acesso negado! Erro: ${res.statusText} - ${res.status} - ${await res.text()}`);
+      setMessage(
+        `Acesso negado! Erro: ${res.statusText} - ${
+          res.status
+        } - ${await res.text()}`
+      );
     } else {
-      setMessage("Enviado comando para abrir o portão!");
+      setMessage("Enviado comando para abrir/fechar o portão!");
     }
   };
 
@@ -31,7 +36,13 @@ export default function Home() {
         <p className="mt-4 text-sm text-gray-500">
           Não tem uma conta?{" "}
           <span className="font-semibold text-blue-500">
-            Faça seu cadastro!
+            <Link
+              href="https://wa.me/5516999735008"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Chame no Whatsapp!
+            </Link>
           </span>
         </p>
       </div>
@@ -56,9 +67,6 @@ export default function Home() {
               >
                 Abrir / Fechar Portão
               </button>
-            </div>
-            <div className="text-red-800 font-bold bg-amber-400 py-2 px-4 rounded-2xl mt-8">
-              Não esquecer de destravar o portão!
             </div>
             <div className="text-center my-3">
               {message && (
