@@ -54,8 +54,8 @@ export default function Home() {
       {!isSignedIn ? (
         notLogged()
       ) : (
-        <div className="flex flex-col items-center justify-center mt-8">
-          <div className="space-y-3">
+        <div className="flex flex-col items-center justify-center min-h-screen px-4">
+          <div className="space-y-6 w-full max-w-sm">
             <div className="flex justify-center items-center gap-3">
               <p>Olá, {user?.fullName}</p>
               <UserButton afterSignOutUrl="/" />
@@ -63,12 +63,12 @@ export default function Home() {
             <div className="flex justify-center items-center">
               <button
                 onClick={() => openGate()}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md transition transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow hover:bg-blue-600"
+                className="w-full px-6 py-4 bg-blue-500 text-white rounded-lg text-lg font-semibold transition transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow-lg hover:bg-blue-600"
               >
                 Abrir / Fechar Portão
               </button>
             </div>
-            <div className="text-center my-3">
+            <div className="text-center">
               {message && (
                 <p className="text-red-500 font-semibold">{message}</p>
               )}
