@@ -2,84 +2,13 @@
 
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-
-const COOLDOWN_SECONDS = 5;
-const EMERGENCY_WINDOW_MS = 2000;
+import { useState } from "react";
 
 export default function Home() {
   const { isSignedIn, user } = useUser();
   const [message, setMessage] = useState("");
-  const [cooldownRemaining, setCooldownRemaining] = useState(0);
-  const [isEmergencyWindow, setIsEmergencyWindow] = useState(false);
-  const cooldownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-    null
-  );
-  const emergencyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
-
-  useEffect(() => {
-    return () => {
-      if (cooldownIntervalRef.current) {
-        clearInterval(cooldownIntervalRef.current);
-      }
-      if (emergencyTimeoutRef.current) {
-        clearTimeout(emergencyTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const startCooldown = () => {
-    setCooldownRemaining(COOLDOWN_SECONDS);
-    if (cooldownIntervalRef.current) {
-      clearInterval(cooldownIntervalRef.current);
-    }
-    cooldownIntervalRef.current = setInterval(() => {
-      setCooldownRemaining((prev) => {
-        if (prev <= 1) {
-          if (cooldownIntervalRef.current) {
-            clearInterval(cooldownIntervalRef.current);
-            cooldownIntervalRef.current = null;
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
-  const startEmergencyWindow = () => {
-    setIsEmergencyWindow(true);
-    if (emergencyTimeoutRef.current) {
-      clearTimeout(emergencyTimeoutRef.current);
-    }
-    emergencyTimeoutRef.current = setTimeout(() => {
-      setIsEmergencyWindow(false);
-    }, EMERGENCY_WINDOW_MS);
-  };
-
-  const clearEmergencyWindow = () => {
-    setIsEmergencyWindow(false);
-    if (emergencyTimeoutRef.current) {
-      clearTimeout(emergencyTimeoutRef.current);
-      emergencyTimeoutRef.current = null;
-    }
-  };
-
   const openGate = async () => {
-    const isEmergencyAttempt = cooldownRemaining > 0 && isEmergencyWindow;
-
-    if (cooldownRemaining > 0 && !isEmergencyAttempt) {
-      setMessage(`Aguarde ${cooldownRemaining}s para enviar um novo comando.`);
-      return;
-    }
-
-    setMessage(
-      isEmergencyAttempt
-        ? "Parada de emergência enviada..."
-        : "Abrindo / fechando o portão..."
-    );
+    setMessage("Abrindo / fechando o portão...");
 
     try {
       const res = await fetch(`/api/open-gate`, { method: "POST" });
@@ -90,22 +19,11 @@ export default function Home() {
         return;
       }
 
-      setMessage(
-        isEmergencyAttempt
-          ? "Comando de emergência para o portão enviado!"
-          : "Enviado comando para abrir/fechar o portão!"
-      );
+      setMessage("Enviado comando para abrir/fechar o portão!");
     } catch (error) {
       console.error("Erro ao enviar comando para o portão:", error);
       setMessage("Erro inesperado ao comunicar com o serviço do portão.");
       return;
-    }
-
-    startCooldown();
-    if (isEmergencyAttempt) {
-      clearEmergencyWindow();
-    } else {
-      startEmergencyWindow();
     }
   };
 
@@ -147,30 +65,19 @@ export default function Home() {
               <p>Olá, {user?.fullName}</p>
               <UserButton afterSignOutUrl="/" />
             </div>
+            <p className="text-center text-gray-700 font-medium">
+              Clique para abrir ou fechar o portão
+            </p>
             <div className="flex justify-center items-center">
               <button
                 onClick={() => openGate()}
-                disabled={cooldownRemaining > 0 && !isEmergencyWindow}
-                className={`w-full px-6 py-4 rounded-lg text-lg font-semibold transition transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-lg ${
-                  cooldownRemaining > 0 && !isEmergencyWindow
-                    ? "bg-gray-200 text-gray-500 cursor-not-allowed focus:ring-gray-300"
-                    : "bg-blue-500 text-white focus:ring-blue-400 hover:bg-blue-600"
-                }`}
-              >
-                {isEmergencyWindow
-                  ? "Parar / Cancelar Portão (Emergência)"
-                  : "Abrir / Fechar Portão"}
-              </button>
+                aria-label="Abrir ou fechar o portão"
+                className="h-16 w-16 rounded-full flex items-center justify-center transition transform active:scale-95 focus:outline-none shadow-[0_10px_25px_rgba(0,0,0,0.35)] bg-gradient-to-b from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700"
+              />
             </div>
             <div className="text-center space-y-2">
               {message && (
                 <p className="text-red-500 font-semibold">{message}</p>
-              )}
-              {cooldownRemaining > 0 && (
-                <p className="text-sm text-gray-600">
-                  Próximo comando liberado em {cooldownRemaining}s.
-                  {isEmergencyWindow && " Clique novamente para parar imediatamente."}
-                </p>
               )}
             </div>
           </div>

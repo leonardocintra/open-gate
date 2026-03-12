@@ -1,5 +1,62 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Visão Geral do Sistema
+
+> **Open Gate** é o **frontend** que autentica o usuário e envia comandos para o portão por meio da `leonardo-api`.
+
+```mermaid
+flowchart TD
+	A[Usuário acessa o frontend<br/>Open Gate] --> B{Login via Google OAuth}
+	B -- Falha --> Z[Sem acesso à página]
+	B -- Sucesso --> C[Frontend consulta leonardo-api<br/>/validate]
+	C --> D{Usuário cadastrado?}
+	D -- Não --> Z
+	D -- Sim --> E[Dashboard do frontend
+	com botão do portão]
+	E --> F[Usuário clica no botão
+	Abrir/Fechar]
+	F --> G[Frontend chama leonardo-api<br/>/open-gate]
+	G --> H[leonardo-api publica comando
+	na fila MQTT]
+	H --> I[ESP32 escuta a fila]
+	I --> J[ESP32 aciona o portão]
+
+	classDef frontend fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,font-weight:700
+	class A,E,F frontend
+
+	classDef backend fill:#ede9fe,stroke:#6d28d9,color:#4c1d95
+	class C,G backend
+
+	classDef infra fill:#fef3c7,stroke:#d97706,color:#92400e
+	class H infra
+
+	classDef device fill:#dcfce7,stroke:#15803d,color:#166534
+	class I,J device
+```
+
+## Diagrama C4 Simplificado
+
+> Representação visual (nível de contexto) mostrando como o frontend interage com os demais componentes.
+
+```mermaid
+C4Context
+	title Open Gate - Contexto
+
+	Person(usuario, "Usuário", "Controla o portão pelo navegador")
+
+	System(frontend, "Open Gate (Frontend)", "Next.js + Clerk")
+
+	System_Ext(api, "leonardo-api", "Valida usuários e publica comandos")
+	System_Ext(mqtt, "Fila MQTT", "Canal de eventos para o portão")
+	System_Ext(esp32, "ESP32", "Dispositivo físico conectado ao portão")
+
+	Rel(usuario, frontend, "Login Google OAuth / clique no botão")
+	Rel(frontend, api, "Validação e comando", "HTTPS")
+	Rel(api, mqtt, "Publica evento abrir/fechar", "MQTT")
+	Rel(mqtt, esp32, "Entrega evento")
+	Rel(esp32, usuario, "Aciona portão e confirma")
+```
+
 ## Getting Started
 
 First, run the development server:
