@@ -2,27 +2,63 @@
 
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
+  const DEFAULT_MESSAGE = "Clique para abrir ou fechar o portão";
+  const FEEDBACK_RESET_DELAY = 20_000;
   const { isSignedIn, user } = useUser();
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(DEFAULT_MESSAGE);
+  const [buttonState, setButtonState] = useState<"idle" | "success" | "error">(
+    "idle",
+  );
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearResetTimer = () => {
+    if (!resetTimerRef.current) return;
+    clearTimeout(resetTimerRef.current);
+    resetTimerRef.current = null;
+  };
+
+  const scheduleResetFeedback = () => {
+    clearResetTimer();
+    resetTimerRef.current = setTimeout(() => {
+      setMessage(DEFAULT_MESSAGE);
+      setButtonState("idle");
+      resetTimerRef.current = null;
+    }, FEEDBACK_RESET_DELAY);
+  };
+
+  useEffect(() => {
+    return () => {
+      clearResetTimer();
+    };
+  }, []);
+
   const openGate = async () => {
+    clearResetTimer();
+    setButtonState("idle");
     setMessage("Abrindo / fechando o portão...");
 
     try {
       const res = await fetch(`/api/open-gate`, { method: "POST" });
       if (!res.ok) {
         setMessage(
-          `Acesso negado! Erro: ${res.statusText} - ${res.status} - ${await res.text()}`
+          `Acesso negado! Erro: ${res.statusText} - ${res.status} - ${await res.text()}`,
         );
+        setButtonState("error");
+        scheduleResetFeedback();
         return;
       }
 
       setMessage("Enviado comando para abrir/fechar o portão!");
+      setButtonState("success");
+      scheduleResetFeedback();
     } catch (error) {
       console.error("Erro ao enviar comando para o portão:", error);
       setMessage("Erro inesperado ao comunicar com o serviço do portão.");
+      setButtonState("error");
+      scheduleResetFeedback();
       return;
     }
   };
@@ -65,20 +101,32 @@ export default function Home() {
               <p>Olá, {user?.fullName}</p>
               <UserButton afterSignOutUrl="/" />
             </div>
-            <p className="text-center text-gray-700 font-medium">
-              Clique para abrir ou fechar o portão
-            </p>
+            <div className="text-center">
+              <p
+                className={`font-medium transition-colors duration-200 ${
+                  buttonState === "success"
+                    ? "text-green-600"
+                    : buttonState === "error"
+                      ? "text-red-500"
+                      : "text-gray-700"
+                }`}
+                aria-live="polite"
+              >
+                {message}
+              </p>
+            </div>
             <div className="flex justify-center items-center">
               <button
                 onClick={() => openGate()}
                 aria-label="Abrir ou fechar o portão"
-                className="h-16 w-16 rounded-full flex items-center justify-center transition transform active:scale-95 focus:outline-none shadow-[0_10px_25px_rgba(0,0,0,0.35)] bg-gradient-to-b from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700"
+                className={`h-16 w-16 rounded-full flex items-center justify-center transition transform active:scale-95 focus:outline-none shadow-[0_10px_25px_rgba(0,0,0,0.35)] bg-linear-to-b ${
+                  buttonState === "success"
+                    ? "from-green-400 to-green-600 hover:from-green-500 hover:to-green-700"
+                    : buttonState === "error"
+                      ? "from-red-400 to-red-600 hover:from-red-500 hover:to-red-700"
+                      : "from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700"
+                }`}
               />
-            </div>
-            <div className="text-center space-y-2">
-              {message && (
-                <p className="text-red-500 font-semibold">{message}</p>
-              )}
             </div>
           </div>
         </div>
