@@ -9,9 +9,9 @@ export default function Home() {
   const FEEDBACK_RESET_DELAY = 20_000;
   const { isSignedIn, user } = useUser();
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
-  const [buttonState, setButtonState] = useState<"idle" | "success" | "error">(
-    "idle",
-  );
+  const [buttonState, setButtonState] = useState<
+    "idle" | "pending" | "success" | "error"
+  >("idle");
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearResetTimer = () => {
@@ -37,7 +37,7 @@ export default function Home() {
 
   const openGate = async () => {
     clearResetTimer();
-    setButtonState("idle");
+    setButtonState("pending");
     setMessage("Abrindo / fechando o portão...");
 
     try {
@@ -124,7 +124,9 @@ export default function Home() {
                     ? "from-green-400 to-green-600 hover:from-green-500 hover:to-green-700"
                     : buttonState === "error"
                       ? "from-red-400 to-red-600 hover:from-red-500 hover:to-red-700"
-                      : "from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700"
+                      : buttonState === "pending"
+                        ? "from-yellow-300 to-yellow-500 hover:from-yellow-400 hover:to-yellow-600"
+                        : "from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700"
                 }`}
               />
             </div>
