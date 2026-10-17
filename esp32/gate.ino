@@ -14,7 +14,7 @@ IPAddress primaryDNS(8,8,8,8);
 IPAddress secondaryDNS(8,8,4,4);  
 
 // ======== Config MQTT =========
-const char* mqtt_server = "servidor.s1.eu.hivemq.cloud";
+const char* mqtt_server = "SEU_DEPLOY.emqxsl.com";
 const int mqtt_port = 8883;
 const char* mqtt_user = "username_mqtt";
 const char* mqtt_password = "SENHA_MQTT";
