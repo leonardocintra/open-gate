@@ -99,7 +99,7 @@ export default function Home() {
           <div className="space-y-6 w-full max-w-sm">
             <div className="flex justify-center items-center gap-3">
               <p>Olá, {user?.fullName}</p>
-              <UserButton afterSignOutUrl="/" />
+              <UserButton />
             </div>
             <div className="text-center">
               <p
